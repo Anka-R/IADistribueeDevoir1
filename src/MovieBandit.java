@@ -11,7 +11,7 @@ public class MovieBandit extends Bandit {
 
     public MovieBandit() {
         try {
-            reader = new Scanner(new File("D:\\Mobilité\\UQO\\IA distribuée\\Devoir1\\IADistribueeDevoir1\\src\\training.txt"));
+            reader = new Scanner(new File(Utils.TRAINING_FILE_PATH));
             //reader.useDelimiter(",");
         } catch (IOException e) {
             e.printStackTrace();

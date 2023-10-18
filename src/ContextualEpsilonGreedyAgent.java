@@ -2,7 +2,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
-public class ContextualAgent implements Agent {
+public class ContextualEpsilonGreedyAgent implements Agent {
 
     Random rand;
     double epsilon;
@@ -12,7 +12,7 @@ public class ContextualAgent implements Agent {
     private final Map<Integer, List<String>> MOVIE_LIST;
     private final Map<Integer, Map<String, Double>> USERS_GENRES_RATINGS;
 
-    public ContextualAgent(double epsilon) {
+    public ContextualEpsilonGreedyAgent(double epsilon) {
         rand = new Random();
         this.epsilon = epsilon;
         COUNTS = new HashMap<>();
@@ -20,7 +20,9 @@ public class ContextualAgent implements Agent {
         USERS_GENRES_RATINGS = new HashMap<>();
 
         try {
-            Scanner reader = new Scanner(new File("D:\\Mobilité\\UQO\\IA distribuée\\Devoir1\\IADistribueeDevoir1\\src\\movies.csv"));
+
+            // Get all movies with their genres
+            Scanner reader = new Scanner(new File(Utils.MOVIES_DATA_FILE_PATH));
             Map<String, Double> baseGenresRatings = new HashMap<>();
 
             while(reader.hasNext()) {
@@ -42,7 +44,8 @@ public class ContextualAgent implements Agent {
                 }
             }
 
-            reader = new Scanner(new File("D:\\Mobilité\\UQO\\IA distribuée\\Devoir1\\IADistribueeDevoir1\\src\\training.txt"));
+            // Get all users and set their base genre ratings
+            reader = new Scanner(new File(Utils.TRAINING_FILE_PATH));
             while (reader.hasNext()) {
                 String line = reader.nextLine();
                 String[] userData = line.split(",");
@@ -63,6 +66,8 @@ public class ContextualAgent implements Agent {
         int c = COUNTS.getOrDefault(userId, 0);
 
         if (draw < epsilon || c < 2) { // Minimum 2 explorations
+
+            // Exploration
             int number = rand.nextInt(choices.size());
             lastUserId = userId;
             lastChoice = choices.get(number);
@@ -70,11 +75,13 @@ public class ContextualAgent implements Agent {
 
         } else {
 
+            // Exploitation
             String argmax = choices.get(0);
             double vmax = 0;
 
             for (String movieId : choices) {
 
+                // Get movie from choices that best matches with user ratings
                 List<String> movieGenres = MOVIE_LIST.get(Integer.valueOf(movieId));
 
                 Map<String, Double> genresRating = USERS_GENRES_RATINGS.get(Integer.valueOf(userId));
@@ -95,6 +102,12 @@ public class ContextualAgent implements Agent {
         }
     }
 
+    /**
+     * Determine movie points depending on user genre ratings
+     * @param sortingGenres
+     * @param movieGenres
+     * @return
+     */
     private static int getMoviePoints(LinkedHashMap<String, Double> sortingGenres, List<String> movieGenres) {
         int genreWeight = 0;
         int moviePoints = 0;
@@ -132,5 +145,13 @@ public class ContextualAgent implements Agent {
 
         USERS_GENRES_RATINGS.put(Integer.parseInt(this.lastUserId), userRatings);
         this.COUNTS.put(this.lastUserId, oldCount + 1);
+    }
+
+    public void setEpsilon(double epsilon) {
+        this.epsilon = epsilon;
+    }
+
+    public double getEpsilon() {
+        return epsilon;
     }
 }
